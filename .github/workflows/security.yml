@@ -1,0 +1,34 @@
+name: Security Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  security-checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run npm audit (high severity only)
+        run: npm audit --audit-level=high || echo "npm audit found issues"
+
+      - name: Simple secret scan (grep)
+        run: |
+          if git grep -i "API_KEY\|SECRET\|PASSWORD" -- . ':!package-lock.json'; then
+            echo "Possible secrets found!"
+          else
+            echo "No obvious secrets found."
+          fi
