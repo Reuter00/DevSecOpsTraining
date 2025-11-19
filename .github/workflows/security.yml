@@ -4,7 +4,13 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
   pull_request:
+
+permissions:
+  contents: read
+  pull-requests: read
+  security-events: write
 
 jobs:
   security-checks:
@@ -13,22 +19,31 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci --ignore-scripts
 
       - name: Run npm audit (high severity only)
         run: npm audit --audit-level=high || echo "npm audit found issues"
 
-      - name: Simple secret scan (grep)
-        run: |
-          if git grep -i "API_KEY\|SECRET\|PASSWORD" -- . ':!package-lock.json'; then
-            echo "Possible secrets found!"
-          else
-            echo "No obvious secrets found."
-          fi
+      - name: Dependency review (PRs only)
+        if: github.event_name == 'pull_request'
+        uses: actions/dependency-review-action@v4
+
+      - name: Secret scan (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          args: detect --source . --redact --report-format sarif --report-path gitleaks.sarif
+
+      - name: Upload secret scan results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: gitleaks.sarif
