@@ -38,12 +38,21 @@ jobs:
         if: github.event_name == 'pull_request'
         uses: actions/dependency-review-action@v4
 
+      - name: Install gitleaks
+        run: |
+          GITLEAKS_VERSION=8.18.1
+          curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz \
+            | tar -xz gitleaks
+          mkdir -p "$HOME/.local/bin"
+          mv gitleaks "$HOME/.local/bin/gitleaks"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
       - name: Secret scan (gitleaks)
-        uses: gitleaks/gitleaks-action@v2
-        with:
-          args: detect --source . --redact --report-format sarif --report-path gitleaks.sarif
+        run: gitleaks detect --source . --redact --report-format sarif --report-path gitleaks.sarif
+        env:
+          GITLEAKS_NO_UPDATE_CHECK: "true"
 
       - name: Upload secret scan results
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: gitleaks.sarif
