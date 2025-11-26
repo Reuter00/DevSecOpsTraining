@@ -2,7 +2,9 @@ version: "3.9"
 
 services:
   devsecops:
-    build: .
+    build:
+      context: .
+      dockerfile: dockerfile
     container_name: devsecops_training_backend
     restart: always
     ports:
