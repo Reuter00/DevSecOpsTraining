@@ -37,7 +37,7 @@ jobs:
 
   redeploy:
     needs: build-and-push
-    runs-on: [selfhosted, portainer]
+    runs-on: [self-hosted, portainer]
     steps:
       - name: Trigger Portainer stack redeploy
         run: |
