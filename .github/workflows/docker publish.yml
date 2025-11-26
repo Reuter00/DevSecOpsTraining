@@ -47,10 +47,10 @@ jobs:
         run: |
           set -euo pipefail
 
-          : "${{ secrets.PORTAINER_URL:?PORTAINER_URL missing}}"
-          : "${{ secrets.PORTAINER_STACK_ID:?PORTAINER_STACK_ID missing}}"
-          : "${{ secrets.PORTAINER_ENDPOINT_ID:?PORTAINER_ENDPOINT_ID missing}}"
-          : "${{ secrets.PORTAINER_API_KEY:?PORTAINER_API_KEY missing}}"
+          if [ -z "${{ secrets.PORTAINER_URL }}" ] || [ -z "${{ secrets.PORTAINER_STACK_ID }}" ] || [ -z "${{ secrets.PORTAINER_ENDPOINT_ID }}" ] || [ -z "${{ secrets.PORTAINER_API_KEY }}" ]; then
+            echo "Missing one of the required secrets: PORTAINER_URL, PORTAINER_STACK_ID, PORTAINER_ENDPOINT_ID, PORTAINER_API_KEY" >&2
+            exit 1
+          fi
 
           if [ ! -f docker-compose.yml ]; then
             echo "docker-compose.yml not found; cannot redeploy" >&2
