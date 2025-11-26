@@ -2,9 +2,7 @@ version: "3.9"
 
 services:
   devsecops:
-    build:
-      context: .
-      dockerfile: dockerfile
+    image: ghcr.io/reuter00/devsecopstraining:latest
     container_name: devsecops_training_backend
     restart: always
     ports:
