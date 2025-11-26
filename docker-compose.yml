@@ -3,7 +3,7 @@ version: "3.9"
 services:
   devsecops:
     image: ghcr.io/reuter00/devsecopstraining:latest
-    container_name: devsecops_training_backend
+    container_name: devsecops_backend
     restart: always
     ports:
       - "3000:3000"
@@ -11,9 +11,7 @@ services:
       - NODE_ENV=production
 
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: ghcr.io/reuter00/devsecopstraining-frontend:latest
     container_name: devsecops_frontend
     restart: always
     depends_on:
