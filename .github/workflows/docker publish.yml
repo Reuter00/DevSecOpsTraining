@@ -46,3 +46,4 @@ jobs:
             -H "X-API-Key: ${{ secrets.PORTAINER_API_KEY }}" \
             -H "Content-Type: application/json" \
             -d '{"prune": true}'
+            
