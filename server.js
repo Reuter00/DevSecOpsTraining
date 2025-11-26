@@ -1,6 +1,7 @@
 const express = require('express');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -9,6 +10,7 @@ app.use(express.json());
 
 // Segurança base
 app.use(helmet());
+app.use(cors()); // allow requests from the frontend running on a different port
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos

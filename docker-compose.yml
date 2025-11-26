@@ -9,3 +9,14 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: devsecops_frontend
+    restart: always
+    depends_on:
+      - devsecops
+    ports:
+      - "8080:80"

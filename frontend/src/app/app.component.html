@@ -1,0 +1,50 @@
+<div class="page">
+  <header class="hero">
+    <div>
+      <p class="eyebrow">DevSecOps Training</p>
+      <h1>API Playground (Angular)</h1>
+      <p class="subhead">Login, fetch users, and verify the backend quickly.</p>
+    </div>
+    <div class="pill" [class.ok]="statusOk()" [class.fail]="statusOk() === false">
+      {{ statusText() }}
+    </div>
+  </header>
+
+  <main class="grid">
+    <section class="card">
+      <h2>Healthcheck</h2>
+      <button (click)="ping()">Ping API</button>
+      <pre class="output">{{ healthOutput }}</pre>
+    </section>
+
+    <section class="card">
+      <h2>Login</h2>
+      <label>
+        Username
+        <input [(ngModel)]="username" type="text" placeholder="admin" />
+      </label>
+      <label>
+        Password
+        <input [(ngModel)]="password" type="password" placeholder="admin123" />
+      </label>
+      <button (click)="login()">Login</button>
+      <pre class="output">{{ loginOutput }}</pre>
+    </section>
+
+    <section class="card">
+      <h2>List Users (admin)</h2>
+      <button (click)="getUsers()">Get Users</button>
+      <pre class="output">{{ usersOutput }}</pre>
+    </section>
+
+    <section class="card">
+      <h2>Get User by ID</h2>
+      <label>
+        User ID
+        <input [(ngModel)]="userId" type="number" min="1" />
+      </label>
+      <button (click)="getUserById()">Fetch User</button>
+      <pre class="output">{{ userOutput }}</pre>
+    </section>
+  </main>
+</div>

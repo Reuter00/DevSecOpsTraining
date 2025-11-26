@@ -1,0 +1,12 @@
+/* Component-specific tweaks (global styles in src/styles.css) */
+.pill.ok {
+  background: rgba(56, 189, 248, 0.18);
+  border-color: rgba(56, 189, 248, 0.35);
+  color: #e0f2fe;
+}
+
+.pill.fail {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #fecdd3;
+}
