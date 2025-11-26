@@ -3,9 +3,13 @@ version: "3.9"
 services:
   devsecops:
     image: ghcr.io/reuter00/devsecopstraining:latest
-    container_name: devsecops_training_backend
-    restart: always
+    deploy:
+      restart_policy:
+        condition: any
     ports:
-      - "3000:3000"
+      - target: 3000
+        published: 3000
+        protocol: tcp
+        mode: ingress
     environment:
       - NODE_ENV=production
