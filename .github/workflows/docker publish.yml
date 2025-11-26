@@ -40,15 +40,18 @@ jobs:
     runs-on: [self-hosted, portainer]
     steps:
       - name: Trigger Portainer stack redeploy
+      # This runs on odinserver (self-hosted runner)
+      # and calls Portainer API using your secrets.
         run: |
-          STATUS=$(curl -k -s -o /tmp/portainer_resp.txt -w "%{http_code}" -X POST \
-            "${{ secrets.PORTAINER_URL }}/api/stacks/${{ secrets.PORTAINER_STACK_ID }}/swarm/redeploy?endpointId=${{ secrets.PORTAINER_ENDPOINT_ID }}" \
+          STATUS=$(curl -s -o /tmp/portainer_resp.txt -w "%{http_code}" -X POST \
+            "${{ secrets.PORTAINER_URL }}/api/stacks/${{ secrets.PORTAINER_STACK_ID }}/deploy?endpointId=${{ secrets.PORTAINER_ENDPOINT_ID }}" \
             -H "X-API-Key: ${{ secrets.PORTAINER_API_KEY }}" \
             -H "Content-Type: application/json" \
-            -d '{"prune": true}')
+            -d '{}')
           echo "Portainer response (HTTP $STATUS):"
           cat /tmp/portainer_resp.txt
           if [ "$STATUS" -lt 200 ] || [ "$STATUS" -ge 300 ]; then
             exit 1
           fi
+
             
