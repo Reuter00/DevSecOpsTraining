@@ -45,25 +45,11 @@ jobs:
 
       - name: Redeploy Portainer stack
         run: |
-          # Build JSON payload in a safe way using Python
-          DATA=$(python3 << 'PY'
-          import json, pathlib
-          content = pathlib.Path("docker-compose.yml").read_text()
-          payload = {
-            "StackFileContent": content,
-            "Env": [],          # add envs here later if you use them
-            "Prune": True,      # remove services no longer in the stack
-            "PullImage": True   # force pulling the image
-          }
-          print(json.dumps(payload))
-          PY
-          )
-
-          STATUS=$(curl -k -s -o /tmp/portainer_resp.txt -w "%{http_code}" -X PUT \
-            "${{ secrets.PORTAINER_URL }}/api/stacks/${{ secrets.PORTAINER_STACK_ID }}?endpointId=${{ secrets.PORTAINER_ENDPOINT_ID }}" \
+          STATUS=$(curl -k -s -o /tmp/portainer_resp.txt -w "%{http_code}" -X POST \
+            "${{ secrets.PORTAINER_URL }}/api/stacks/${{ secrets.PORTAINER_STACK_ID }}/swarm/redeploy?endpointId=${{ secrets.PORTAINER_ENDPOINT_ID }}" \
             -H "X-API-Key: ${{ secrets.PORTAINER_API_KEY }}" \
             -H "Content-Type: application/json" \
-            -d "$DATA")
+            -d '{"Prune":true,"PullImage":true}')
 
           echo "Portainer response (HTTP $STATUS):"
           cat /tmp/portainer_resp.txt
