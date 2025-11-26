@@ -45,6 +45,18 @@ jobs:
 
       - name: Redeploy Portainer stack
         run: |
+          set -euo pipefail
+
+          : "${{ secrets.PORTAINER_URL:?PORTAINER_URL missing}}"
+          : "${{ secrets.PORTAINER_STACK_ID:?PORTAINER_STACK_ID missing}}"
+          : "${{ secrets.PORTAINER_ENDPOINT_ID:?PORTAINER_ENDPOINT_ID missing}}"
+          : "${{ secrets.PORTAINER_API_KEY:?PORTAINER_API_KEY missing}}"
+
+          if [ ! -f docker-compose.yml ]; then
+            echo "docker-compose.yml not found; cannot redeploy" >&2
+            exit 1
+          fi
+
           DATA=$(python3 << 'PY'
           import json, pathlib
           content = pathlib.Path("docker-compose.yml").read_text()
@@ -66,7 +78,9 @@ jobs:
 
           echo "Portainer response (HTTP $STATUS):"
           cat /tmp/portainer_resp.txt
+          echo
 
           if [ "$STATUS" -lt 200 ] || [ "$STATUS" -ge 300 ]; then
+            echo "Redeploy failed (status $STATUS) for stack=${{ secrets.PORTAINER_STACK_ID }} endpoint=${{ secrets.PORTAINER_ENDPOINT_ID }}" >&2
             exit 1
           fi
