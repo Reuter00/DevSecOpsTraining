@@ -37,7 +37,7 @@ jobs:
 
   redeploy:
     needs: build-and-push
-    runs-on: ubuntu-latest
+    runs-on: [selfhosted, portainer]
     steps:
       - name: Trigger Portainer stack redeploy
         run: |
