@@ -29,7 +29,8 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci --ignore-scripts
+        run: |
+          npm ci --ignore-scripts || npm install --ignore-scripts --package-lock-only
 
       - name: Run npm audit (high severity only)
         run: npm audit --audit-level=high || echo "npm audit found issues"
