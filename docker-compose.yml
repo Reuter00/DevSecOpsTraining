@@ -110,7 +110,7 @@ services:
         EOF
         /bin/prometheus --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus
     ports:
-      - "9090:9090"
+      - "${PROMETHEUS_PORT:-9091}:9090"
     depends_on:
       - postgres_exporter
 
