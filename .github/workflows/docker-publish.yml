@@ -55,10 +55,26 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Redeploy Portainer stack
+        env:
+          PORTAINER_URL: ${{ secrets.PORTAINER_URL }}
+          PORTAINER_STACK_ID: ${{ secrets.PORTAINER_STACK_ID }}
+          PORTAINER_ENDPOINT_ID: ${{ secrets.PORTAINER_ENDPOINT_ID }}
+          PORTAINER_API_KEY: ${{ secrets.PORTAINER_API_KEY }}
+          POSTGRES_HOST: postgres
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          PGADMIN_DEFAULT_EMAIL: ${{ secrets.PGADMIN_DEFAULT_EMAIL }}
+          PGADMIN_DEFAULT_PASSWORD: ${{ secrets.PGADMIN_DEFAULT_PASSWORD }}
+          GRAFANA_ADMIN_USER: ${{ secrets.GRAFANA_ADMIN_USER }}
+          GRAFANA_ADMIN_PASSWORD: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
+          NODE_ENV: production
         run: |
           set -euo pipefail
 
-          if [ -z "${{ secrets.PORTAINER_URL }}" ] || [ -z "${{ secrets.PORTAINER_STACK_ID }}" ] || [ -z "${{ secrets.PORTAINER_ENDPOINT_ID }}" ] || [ -z "${{ secrets.PORTAINER_API_KEY }}" ]; then
+          if [ -z "${PORTAINER_URL}" ] || [ -z "${PORTAINER_STACK_ID}" ] || [ -z "${PORTAINER_ENDPOINT_ID}" ] || [ -z "${PORTAINER_API_KEY}" ]; then
             echo "Missing one of the required secrets: PORTAINER_URL, PORTAINER_STACK_ID, PORTAINER_ENDPOINT_ID, PORTAINER_API_KEY" >&2
             exit 1
           fi
@@ -69,21 +85,44 @@ jobs:
           fi
 
           DATA=$(python3 << 'PY'
-          import json, pathlib
+          import json, os, pathlib
+
           content = pathlib.Path("docker-compose.yml").read_text()
+
+          def env(name, default=""):
+            val = os.environ.get(name, default)
+            if val is None:
+              val = ""
+            return {"name": name, "value": val}
+
+          env_list = [
+            env("NODE_ENV", "production"),
+            env("POSTGRES_HOST", "postgres"),
+            env("POSTGRES_USER"),
+            env("POSTGRES_PASSWORD"),
+            env("POSTGRES_DB"),
+            env("DATABASE_URL"),
+            env("JWT_SECRET"),
+            env("PGADMIN_DEFAULT_EMAIL"),
+            env("PGADMIN_DEFAULT_PASSWORD"),
+            env("GRAFANA_ADMIN_USER"),
+            env("GRAFANA_ADMIN_PASSWORD"),
+          ]
+
           payload = {
             "StackFileContent": content,
             "Prune": True,
             "PullImage": True,
-            "Env": []
+            "Env": env_list,
           }
+
           print(json.dumps(payload))
           PY
           )
 
           STATUS=$(curl -k -s -o /tmp/portainer_resp.txt -w "%{http_code}" -X PUT \
-            "${{ secrets.PORTAINER_URL }}/api/stacks/${{ secrets.PORTAINER_STACK_ID }}?endpointId=${{ secrets.PORTAINER_ENDPOINT_ID }}" \
-            -H "X-API-Key: ${{ secrets.PORTAINER_API_KEY }}" \
+            "${PORTAINER_URL}/api/stacks/${PORTAINER_STACK_ID}?endpointId=${PORTAINER_ENDPOINT_ID}" \
+            -H "X-API-Key: ${PORTAINER_API_KEY}" \
             -H "Content-Type: application/json" \
             -d "$DATA")
 
@@ -92,6 +131,6 @@ jobs:
           echo
 
           if [ "$STATUS" -lt 200 ] || [ "$STATUS" -ge 300 ]; then
-            echo "Redeploy failed (status $STATUS) for stack=${{ secrets.PORTAINER_STACK_ID }} endpoint=${{ secrets.PORTAINER_ENDPOINT_ID }}" >&2
+            echo "Redeploy failed (status $STATUS) for stack=${PORTAINER_STACK_ID} endpoint=${PORTAINER_ENDPOINT_ID}" >&2
             exit 1
           fi
