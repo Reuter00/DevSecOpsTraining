@@ -18,7 +18,7 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-const JWT_SECRET = 'super-secret-key'; // em produção → process.env.JWT_SECRET
+const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key';
 
 // "Fake DB" em memória com passwords hashed
 const users = [];
@@ -120,7 +120,22 @@ app.get('/', (req, res) => {
   res.json({ status: 'ok', time: new Date().toISOString() });
 });
 
-const PORT = 3000;
-app.listen(PORT, () => {
-  console.log(`API running at http://localhost:${PORT}`);
+// readiness endpoint to let orchestrators wait for boot
+app.get('/readyz', (req, res) => {
+  res.json({ status: 'ready' });
 });
+
+const PORT = process.env.PORT || 3000;
+
+function start() {
+  const server = app.listen(PORT, () => {
+    console.log(`API running at http://localhost:${PORT}`);
+  });
+  return server;
+}
+
+if (require.main === module) {
+  start();
+}
+
+module.exports = { app, start };
