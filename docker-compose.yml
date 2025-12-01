@@ -90,25 +90,10 @@ services:
     container_name: devsecops_prometheus
     restart: always
     command:
-      - /bin/sh
-      - -c
-      - |
-        cat <<'EOF' > /etc/prometheus/prometheus.yml
-        global:
-          scrape_interval: 15s
-          evaluation_interval: 15s
-
-        scrape_configs:
-          - job_name: 'devsecops-api'
-            metrics_path: /readyz
-            static_configs:
-              - targets: ['devsecops:3000']
-
-          - job_name: 'postgres'
-            static_configs:
-              - targets: ['postgres_exporter:9187']
-        EOF
-        /bin/prometheus --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports:
       - "${PROMETHEUS_PORT:-9091}:9090"
     depends_on:
