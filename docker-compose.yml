@@ -89,12 +89,27 @@ services:
     image: prom/prometheus:v2.51.2
     container_name: devsecops_prometheus
     restart: always
-    command:
-      - --config.file=/etc/prometheus/prometheus.yml
-      - --storage.tsdb.path=/prometheus
-    configs:
-      - source: prometheus_config
-        target: /etc/prometheus/prometheus.yml
+    entrypoint:
+      - /bin/sh
+      - -c
+    command: |
+      cat <<'EOF' > /etc/prometheus/prometheus.yml
+      global:
+        scrape_interval: 15s
+        evaluation_interval: 15s
+
+      scrape_configs:
+        - job_name: 'devsecops-api'
+          metrics_path: /readyz
+          static_configs:
+            - targets: ['devsecops:3000']
+
+        - job_name: 'postgres'
+          static_configs:
+            - targets: ['postgres_exporter:9187']
+      EOF
+
+      exec /bin/prometheus --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus
     ports:
       - "${PROMETHEUS_PORT:-9091}:9090"
     depends_on:
@@ -118,6 +133,3 @@ volumes:
   postgres_data:
   pgadmin_data:
   grafana_data:
-configs:
-  prometheus_config:
-    file: ./monitoring/prometheus.yml
