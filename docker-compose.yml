@@ -88,11 +88,14 @@ services:
   prometheus:
     image: prom/prometheus:v2.51.2
     container_name: devsecops_prometheus
+    user: "0:0"
     entrypoint:
       - /bin/sh
       - -c
     command: |
-      cat >/prometheus/prometheus.yml <<'EOF'
+      set -e
+
+      cat >/tmp/prometheus.yml <<'EOF'
       global:
         scrape_interval: 15s
         evaluation_interval: 15s
@@ -108,7 +111,9 @@ services:
             - targets: ['postgres_exporter:9187']
       EOF
 
-      exec /bin/prometheus --config.file=/prometheus/prometheus.yml --storage.tsdb.path=/prometheus
+      chmod -R 777 /prometheus
+
+      exec /bin/prometheus --config.file=/tmp/prometheus.yml --storage.tsdb.path=/prometheus
     ports:
       - "${PROMETHEUS_PORT:-9091}:9090"
     depends_on:
